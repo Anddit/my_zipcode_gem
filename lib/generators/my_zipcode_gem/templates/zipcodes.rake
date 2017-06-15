@@ -19,7 +19,7 @@ namespace :zipcodes do
     end
     CSV.foreach(file.path, :headers => true) do |row|
       puts "Updating state: [#{row['name']}]"
-      state = State.where(abbr: row['abbr']).first_or_initialize
+      state = Supportportal::State.where(abbr: row['abbr']).first_or_initialize
       state.update_attribute(:name, row['name'])
     end
     data.close
@@ -43,8 +43,8 @@ namespace :zipcodes do
     CSV.foreach(file.path, :headers => true) do |row|
       puts "Updating county: [#{row['name']}]"
       # lookup state
-      state = State.find_by_abbr!(row['state'])
-      county = County.where(name: row['name'], state_id: state.to_param).first_or_initialize
+      state = Supportportal::State.find_by_abbr!(row['state'])
+      county = Supportportal::County.where(name: row['name'], state_id: state.to_param).first_or_initialize
       county.update_attribute(:county_seat, row['county_seat'])
     end
     data.close
@@ -68,15 +68,15 @@ namespace :zipcodes do
     CSV.foreach(file.path, :headers => true) do |row|
       puts "Updating zipcode: [#{row['code']}], '#{row['city']}, #{row['state']}, #{row['county']}"
       # lookup state
-      state = State.find_by_abbr!(row['state'])
+      state = Supportportal::State.find_by_abbr!(row['state'])
       begin
-        county = County.find_by_name_and_state_id!(row['county'], state.to_param)
+        county = Supportportal::County.find_by_name_and_state_id!(row['county'], state.to_param)
       rescue Exception => e
         puts ">>> e: [#{e}]"
         puts ">>>> No county found for zipcode: [#{row['code']}], '#{row['city']}, #{row['state']}, #{row['county']}... SKIPPING..."
         next
       end
-      zipcode = Zipcode.where(code: row['code']).first_or_initialize
+      zipcode = Supportportal::Zipcode.where(code: row['code']).first_or_initialize
       zipcode.update_attributes!(
         :city => row['city'].titleize,
         :state_id => state.to_param,
@@ -94,9 +94,9 @@ namespace :zipcodes do
     Rake::Task['zipcodes:update_zipcodes'].invoke
   end
 
-  desc "Export US States to a .csv file"
+  desc "Export US Supportportal::States to a .csv file"
   task :export_states => :environment do
-    @states = State.order("name ASC")
+    @states = Supportportal::State.order("name ASC")
     csv_string = CSV.generate do |csv|
       csv << ["abbr", "name"]
       @states.each do |state|
@@ -114,7 +114,7 @@ namespace :zipcodes do
 
   desc "Export all US Counties to a .csv file"
   task :export_counties => :environment do
-    @counties = County.order("name ASC")
+    @counties = Supportportal::County.order("name ASC")
     csv_string = CSV.generate do |csv|
       csv << ["name", "state", "county_seat"]
       @counties.each do |county|
@@ -133,7 +133,7 @@ namespace :zipcodes do
 
   desc "Export the zipcodes with county and state data"
   task :export_zipcodes => :environment do
-    @zipcodes = Zipcode.order("code ASC")
+    @zipcodes = Supportportal::Zipcode.order("code ASC")
     csv_string = CSV.generate do |csv|
       csv << ["code", "city", "state", "county", "area_code", "lat", "lon"]
       @zipcodes.each do |zip|

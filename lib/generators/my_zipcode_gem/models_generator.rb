@@ -18,9 +18,9 @@ module MyZipcodeGem
     end
 
     def create_models
-      template 'zipcode_model.rb', "app/models/zipcode.rb"
-      template 'county_model.rb', "app/models/county.rb"
-      template 'state_model.rb', "app/models/state.rb"
+      template 'zipcode_model.rb', "app/models/supportportal/zipcode.rb"
+      template 'county_model.rb', "app/models/supportportal/county.rb"
+      template 'state_model.rb', "app/models/supportportal/state.rb"
     end
 
     # Implement the required interface for Rails::Generators::Migration.
